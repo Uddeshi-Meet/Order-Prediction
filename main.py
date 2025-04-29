@@ -1,4 +1,3 @@
-
 # Step 1 => Import required libraries
 import os
 import pandas as pd
@@ -62,8 +61,6 @@ def preprocess_data(df):
     if existing_numerical_cols:
         scaler = StandardScaler()
         df[existing_numerical_cols] = scaler.fit_transform(df[existing_numerical_cols])
-    else:
-        print("No numerical features available for scaling!")
     return df
 
 # Step 5 => Optimize XGBoost Model using GridSearchCV
@@ -79,52 +76,20 @@ def optimize_model(X_train, y_train):
     xgb = XGBRegressor()
     grid_search = GridSearchCV(xgb, param_grid, cv=5, scoring='r2', n_jobs=-1)
     grid_search.fit(X_train, y_train)
-    print(f"Best Parameters: {grid_search.best_params_}")
     return grid_search.best_estimator_
 
-# Step 6 => Evaluate model
-def evaluate_model(model, X_test, y_test):
-    y_pred = model.predict(X_test)
-    mae = mean_absolute_error(y_test, y_pred)
-    mse = mean_squared_error(y_test, y_pred)
-    rmse = np.sqrt(mse)
-    r2 = r2_score(y_test, y_pred)
-    plt.figure(figsize=(10,6))
-    sns.histplot(y_test - y_pred, kde=True, bins=30)
-    plt.xlabel("Residual Errors")
-    plt.title("Residual Distribution")
-    plt.show()
-    feature_importance = model.feature_importances_
-    labels = X_test.columns
-    plt.figure(figsize=(10,6))
-    sns.barplot(x=feature_importance, y=labels, palette="coolwarm")
-    plt.title("Feature Importance in Model")
-    plt.show()
-    print(f"MAE: {mae:.2f}")
-    print(f"MSE: {mse:.2f}")
-    print(f"RMSE: {rmse:.2f}")
-    print(f"R² Score: {r2:.4f}")
-    return r2
-
-# Step 7 => Main Execution
+# Step 6 => Main execution
 def main():
     customers, order_items, order_payments, order_reviews, orders, products, sellers, category_translation = load_datasets()
     df = merge_datasets(orders, customers, order_items, products, order_payments, order_reviews, sellers, category_translation)
     df = preprocess_data(df)
     features = ["total_price", "total_freight", "total_payment", "avg_review_score", "purchase_hour", "purchase_day", "purchase_month", "purchase_weekday", "customer_state", "seller_state", "product_category_name_english", "payment_type"]
-    existing_features = [col for col in features if col in df.columns]
-    if not existing_features:
-        print("Error: No valid features available for training!")
-        return
-    X = df[existing_features]
+    X = df[features]
     y = df["order_completion_time"]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     best_model = optimize_model(X_train, y_train)
-    joblib.dump(best_model, "xgboost_model.pkl")  # Save the model as a .pkl file
+    joblib.dump(best_model, "xgboost_model.pkl")  # Save the model
     print("Model saved as 'xgboost_model.pkl'!")
-    r2 = evaluate_model(best_model, X_test, y_test)
-    if r2 > 0.85:
-        print("Model is performing exceptionally well with high accuracy!")
 
 if __name__ == "__main__":
     main()

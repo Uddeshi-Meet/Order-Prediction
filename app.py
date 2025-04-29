@@ -1,14 +1,16 @@
-
+# Step 1 => Import required libraries
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib  # For loading the saved model
 
+# Step 2 => Load the model
 def load_model():
-    # Load the model using joblib (from .pkl file)
+    """Load the model from the saved .pkl file"""
     model = joblib.load("xgboost_model.pkl")
     return model
 
+# Step 3 => Predict delivery time
 def predict_delivery_time(model, total_price, total_freight, total_payment, avg_review_score, 
                           purchase_hour, purchase_day, purchase_month, purchase_weekday, 
                           customer_state, seller_state, product_category, payment_type):
@@ -22,6 +24,7 @@ def predict_delivery_time(model, total_price, total_freight, total_payment, avg_
     prediction = model.predict(input_data)[0]
     return round(prediction, 2)
 
+# Step 4 => Set up the UI
 def setup_ui():
     """Initialize and set up the Streamlit UI."""
     st.set_page_config(page_title="Order Delivery Time Prediction", layout="centered")
@@ -34,6 +37,7 @@ def setup_ui():
     - The model will predict the time in hours.
     """)
 
+# Step 5 => Main function
 def main():
     model = load_model()  # Load the trained model
 
@@ -60,6 +64,7 @@ def main():
         )
         st.success(f"Predicted Delivery Time: {delivery_time} hours")
 
+# Step 6 => Main execution
 if __name__ == "__main__":
     setup_ui()
     main()

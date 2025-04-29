@@ -7,7 +7,7 @@ import joblib  # For loading the saved model
 # Step 2 => Load the model
 def load_model():
     """Load the model from the saved .pkl file"""
-    model = joblib.load("xgboost_model.pkl")
+    model = joblib.load("models/xgboost_model.pkl")
     return model
 
 # Step 3 => Predict delivery time
